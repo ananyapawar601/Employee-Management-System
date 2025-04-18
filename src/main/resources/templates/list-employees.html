@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Employee Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-image: url('/images/bgpic.jpeg');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+            padding-bottom: 50px;
+        }
+        
+        .container-wrapper {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .user-dropdown {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .btn i {
+            margin-right: 5px;
+        }
+        
+        .table {
+            background-color: white;
+        }
+        
+        .table thead {
+            background-color: #1E407C;
+            color: white;
+        }
+        
+        .page-title {
+            color: #1E407C;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .action-buttons .btn {
+            margin-right: 5px;
+            min-width: 80px;
+        }
+        
+        .salary-column {
+            text-align: right;
+        }
+        
+        .search-container {
+            margin-bottom: 20px;
+        }
+        
+        .search-input {
+            border-radius: 4px 0 0 4px;
+        }
+        
+        .search-btn {
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .clear-btn {
+            margin-left: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .container-wrapper {
+                padding: 15px;
+            }
+            .action-buttons .btn {
+                margin-bottom: 5px;
+                display: block;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+	<!-- Updated user dropdown with blue styling -->
+	    <div class="user-dropdown">
+	        <div class="dropdown">
+	            <button class="btn btn-primary dropdown-toggle" type="button" id="userDropdown" 
+	                    data-bs-toggle="dropdown" aria-expanded="false">
+	                <i class="bi bi-person-circle"></i> 
+	                <span sec:authentication="principal.username"></span>
+	            </button>
+	            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+	                <li><h6 class="dropdown-header">User Information</h6></li>
+	                <li><span class="dropdown-item-text">
+	                    <strong>Role:</strong> <span sec:authentication="principal.authorities"></span>
+	                </span></li>
+	                <li><hr class="dropdown-divider"></li>
+	                <li>
+	                    <form th:action="@{/logout}" method="post" class="px-3 py-1">
+	                        <button type="submit" class="btn btn-sm btn-danger w-100">
+	                            <i class="bi bi-box-arrow-right"></i> Logout
+	                        </button>
+	                    </form>
+	                </li>
+	            </ul>
+	        </div>
+	    </div>
+		<!-- Updated user dropdown with blue styling -->
+		    <div class="user-dropdown">
+		        <div class="dropdown">
+		            <button class="btn btn-primary dropdown-toggle" type="button" id="userDropdown" 
+		                    data-bs-toggle="dropdown" aria-expanded="false">
+		                <i class="bi bi-person-circle"></i> 
+		                <span sec:authentication="principal.username"></span>
+		            </button>
+		            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+		                <li><h6 class="dropdown-header">User Information</h6></li>
+		                <li><span class="dropdown-item-text">
+		                    <strong>Role:</strong> <span sec:authentication="principal.authorities"></span>
+		                </span></li>
+		                <li><hr class="dropdown-divider"></li>
+		                <li>
+		                    <form th:action="@{/logout}" method="post" class="px-3 py-1">
+		                        <button type="submit" class="btn btn-sm btn-danger w-100">
+		                            <i class="bi bi-box-arrow-right"></i> Logout
+		                        </button>
+		                    </form>
+		                </li>
+		            </ul>
+		        </div>
+		    </div>
+
+
+    <div class="container container-wrapper mt-5">
+        <!-- Header with title, search, and action buttons -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="page-title">
+                <i class="bi bi-people-fill"></i> Employee Management
+            </h2>
+            <div>
+                <a th:href="@{/employees/showFormForAdd}" class="btn btn-primary"
+                   sec:authorize="hasRole('MANAGER')">
+                    <i class="bi bi-person-plus"></i> Add Employee
+                </a>
+            </div>
+        </div>
+
+        <!-- Search Form -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <form th:action="@{/employees/list}" method="get" class="form-inline">
+                    <div class="input-group">
+                        <input type="text" 
+                               class="form-control" 
+                               name="search" 
+                               th:value="${param.search}"
+                               placeholder="Search by name...">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-primary" type="submit">
+                                <i class="bi bi-search"></i> Search
+                            </button>
+                            <a th:href="@{/employees/list}" class="btn btn-outline-secondary" th:if="${param.search}">
+                                <i class="bi bi-x-circle"></i> Clear
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- No results message -->
+        <div th:if="${employees.empty}" class="alert alert-info">
+            No employees found <span th:if="${param.search}">matching your search criteria</span>.
+        </div>
+
+        <!-- Employee table -->
+        <div class="table-responsive" th:unless="${employees.empty}">
+            <table class="table table-bordered table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Start Date</th>
+                        <th class="salary-column">Salary</th>
+                        <th>Contract</th>
+                        <th>Phone</th>
+                        <th>Birth Date</th>
+                        <th>Emergency Contact</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="employee : ${employees}">
+                        <td th:text="${employee.employeeId}"></td>
+                        <td th:text="${employee.firstName}"></td>
+                        <td th:text="${employee.lastName}"></td>
+                        <td th:text="${employee.startDate}"></td>
+                        <td class="salary-column" th:text="${'$' + #numbers.formatDecimal(employee.startSalary, 1, 2)}"></td>
+                        <td>
+                            <span th:if="${employee.contractSigned == 'Y'}" class="badge bg-success">Yes</span>
+                            <span th:if="${employee.contractSigned == 'N'}" class="badge bg-secondary">No</span>
+                        </td>
+                        <td th:text="${employee.phoneNumber}"></td>
+                        <td th:text="${employee.birthDate}"></td>
+                        <td>
+                            <span th:text="${employee.emergencyContact}"></span><br>
+                            <small th:text="${employee.emergencyPhone}" class="text-muted"></small>
+                        </td>
+                        <td class="action-buttons">
+                            <a th:href="@{/employees/showFormForUpdate(employeeId=${employee.employeeId})}"
+                               class="btn btn-sm btn-outline-primary"
+                               sec:authorize="hasRole('MANAGER')">
+                                <i class="bi bi-pencil"></i> Edit
+                            </a>
+                            <a th:href="@{/employees/delete(employeeId=${employee.employeeId})}"
+                               class="btn btn-sm btn-outline-danger"
+                               onclick="return confirm('Are you sure you want to delete this employee?')"
+                               sec:authorize="hasRole('ADMIN')">
+                                <i class="bi bi-trash"></i> Delete
+                            </a>
+                            
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
